@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-10 mt-6 animate-fade-up">
+
+    <!-- 1. Hero Welcome & Search Banner -->
+    <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 p-8 sm:p-12 text-white shadow-xl">
+        <div class="relative z-10 max-w-2xl space-y-4">
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                Hey, Foodie! What are we eating in <span class="underline decoration-wavy decoration-white">{{ current_location }}</span> today?
+            </h2>
+            <p class="text-sm sm:text-base text-orange-50/90 font-light max-w-md">
+                Enter a craving or ingredient below, and our ML search engine will match it against ingredients and cuisine metadata.
+            </p>
+            
+            <!-- ML Search Input -->
+            <form action="{{ url_for('views.dashboard') }}" method="GET" class="flex flex-col sm:flex-row gap-2.5 pt-2">
+                <div class="relative flex-grow">
+                    <input type="text" name="search" placeholder="Try searching 'biryani', 'masala', 'pizza', 'quinoa'..." value="{{ search_query or '' }}" class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white text-gray-800 focus:outline-none shadow-md text-sm">
+                    <span class="absolute left-4 top-4 text-gray-400 text-lg">🔍</span>
+                </div>
+                <button type="submit" class="bg-gray-900 text-white font-bold px-6 py-3.5 rounded-2xl hover:bg-gray-800 transition-colors text-sm shadow-md">
+                    Search Food
+                </button>
+                {% if search_query %}
+                    <a href="{{ url_for('views.dashboard') }}" class="flex items-center justify-center bg-white/20 text-white font-semibold px-4 py-3.5 rounded-2xl hover:bg-white/30 transition-colors text-sm">
+                        Clear
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+        <!-- Decorative graphic icon -->
+        <div class="absolute right-8 bottom-0 opacity-15 text-[150px] leading-none select-none hidden lg:block">🍔</div>
+    </div>
+
+    <!-- 2. Categories Pill Selection -->
+    <div class="space-y-4">
+        <h3 class="text-xl font-extrabold text-gray-800 dark:text-white">Quick Categories</h3>
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ url_for('views.dashboard') }}" 
+               class="px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-sm {% if not active_category %} bg-orange-500 text-white {% else %} glass-panel hover:bg-white/80 dark:hover:bg-slate-800/80 {% endif %}">
+                All Dishes
+            </a>
+            {% for cat in categories %}
+                <a href="{{ url_for('views.dashboard', category=cat) }}" 
+                   class="px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-sm {% if active_category == cat %} bg-orange-500 text-white {% else %} glass-panel hover:bg-white/80 dark:hover:bg-slate-800/80 {% endif %}">
+                    {% if cat == 'Veg' %}🟢 Veg
+                    {% elif cat == 'Non-Veg' %}🔺 Non-Veg
+                    {% elif cat == 'Vegan' %}🌱 Vegan
+                    {% elif cat == 'Dessert' %}🍰 Dessert
+                    {% else %}{{ cat }}{% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 3. Search results notice / dynamic header -->
+    {% if search_query %}
+        <div class="border-b border-gray-200/40 dark:border-slate-800 pb-3 flex items-center justify-between">
+            <h3 class="text-xl font-extrabold text-gray-800 dark:text-white">
+                ML Similarity Search Results for "{{ search_query }}"
+            </h3>
+            <span class="text-xs text-orange-500 font-bold bg-orange-50 dark:bg-orange-950/30 px-3 py-1 rounded-full border border-orange-200/20">
+                Ordered by Cosine Similarity Score
+            </span>
+        </div>
+    {% endif %}
+
+    <!-- 4. Nearby Restaurants section (only shown if not actively searching) -->
+    {% if not search_query %}
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xl font-extrabold text-gray-800 dark:text-white">Nearby Restaurants in {{ current_location }}</h3>
+            <span class="text-xs text-gray-400 font-semibold">{{ restaurants|length }} spots found</span>
+        </div>
+        
+        {% if restaurants %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for rest in restaurants %}
+                    <a href="{{ url_for('views.restaurant_details', restaurant_id=rest.id) }}" class="group">
+                        <div class="glass-card rounded-3xl overflow-hidden flex flex-col h-full">
+                            <!-- Image container with ratio -->
+                            <div class="relative h-44 overflow-hidden bg-gray-200 dark:bg-slate-800">
+                                <img src="{{ rest.image_url }}" alt="{{ rest.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                <!-- Favorite Toggle -->
+                                <button data-restaurant-id="{{ rest.id }}" class="fav-toggle-btn absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm text-gray-400 hover:text-red-500 transition-colors shadow-sm focus:outline-none {% if rest.id in fav_rest_ids %}text-red-500{% endif %}">
+                                    <svg class="h-4.5 w-4.5" fill="{% if rest.id in fav_rest_ids %}currentColor{% else %}none{% endif %}" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                </button>
+                                <!-- Location badge -->
+                                <span class="absolute bottom-3 left-3 text-[10px] font-bold bg-gray-900/80 text-white rounded-full px-2.5 py-1 backdrop-blur-sm">
+                                    📍 {{ rest.location }}
+                                </span>
+                            </div>
+                            
+                            <!-- Card Body -->
+                            <div class="p-5 flex flex-col flex-grow space-y-2">
+                                <h4 class="font-extrabold text-base text-gray-800 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">{{ rest.name }}</h4>
+                                <p class="text-xs text-gray-400 truncate">{{ rest.cuisine }}</p>
+                                
+                                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-slate-800 text-xs font-bold text-gray-500 dark:text-slate-400 mt-auto">
+                                    <span class="flex items-center text-amber-500">
+                                        ⭐ <span class="ml-1 text-gray-800 dark:text-gray-100">{{ rest.rating }}</span>
+                                    </span>
+                                    <span>⏱️ {{ rest.delivery_time }} mins</span>
+                                    <span>₹{{ rest.avg_price|int }} for 2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel p-8 rounded-3xl text-center text-gray-400">
+                <span class="text-4xl block mb-2">🍽️</span>
+                No restaurants found in {{ current_location }} yet. Go to the header location dropdown to select a different area, or use Auto Detect!
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- 5. Featured Foods / Recommendations Grid -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xl font-extrabold text-gray-800 dark:text-white">
+                {% if search_query %}Matches found{% else %}Foods in {{ current_location }}{% endif %}
+            </h3>
+            <span class="text-xs text-gray-400 font-semibold">{{ foods|length }} items available</span>
+        </div>
+
+        {% if foods %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for food in foods %}
+                    <!-- Clicking the food redirects to similar food recommendations page -->
+                    <a href="{{ url_for('views.recommendations', food_id=food.id) }}" class="group">
+                        <div class="glass-card rounded-3xl overflow-hidden flex flex-col h-full">
+                            
+                            <!-- Image Container -->
+                            <div class="relative h-48 overflow-hidden bg-gray-200 dark:bg-slate-800">
+                                <img src="{{ food.image_url }}" alt="{{ food.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                
+                                <!-- Favorite Toggle -->
+                                <button data-food-id="{{ food.id }}" class="fav-toggle-btn absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm text-gray-400 hover:text-red-500 transition-colors shadow-sm focus:outline-none {% if food.id in fav_food_ids %}text-red-500{% endif %}">
+                                    <svg class="h-4.5 w-4.5" fill="{% if food.id in fav_food_ids %}currentColor{% else %}none{% endif %}" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                </button>
+                                
+                                <!-- Category Badge -->
+                                <span class="absolute bottom-3 left-3 text-[10px] font-extrabold uppercase tracking-wide px-3 py-1 rounded-full text-white backdrop-blur-md 
+                                    {% if food.category == 'Veg' %}bg-green-600/80
+                                    {% elif food.category == 'Non-Veg' %}bg-red-600/80
+                                    {% elif food.category == 'Vegan' %}bg-emerald-600/80
+                                    {% else %}bg-purple-600/80{% endif %}">
+                                    {{ food.category }}
+                                </span>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="p-6 flex flex-col flex-grow space-y-3">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-extrabold text-lg text-gray-800 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
+                                        {{ food.name }}
+                                    </h4>
+                                    <span class="text-orange-500 dark:text-orange-400 font-extrabold text-lg">
+                                        ₹{{ food.price|int }}
+                                    </span>
+                                </div>
+                                
+                                <div class="text-xs text-gray-400 font-medium">
+                                    <span>Cuisine: <strong>{{ food.cuisine }}</strong></span>
+                                    <span class="mx-1.5">•</span>
+                                    <span>From: <strong>{{ food.restaurant_name }}</strong></span>
+                                </div>
+
+                                <!-- Ingredients Preview -->
+                                <div class="flex flex-wrap gap-1.5 pt-1">
+                                    {% for ing in food.ingredients[:4] %}
+                                        <span class="text-[10px] bg-gray-100 dark:bg-slate-800/80 text-gray-500 dark:text-slate-400 px-2.5 py-0.5 rounded-full font-medium border border-gray-200/20">
+                                            {{ ing }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if food.ingredients|length > 4 %}
+                                        <span class="text-[10px] text-gray-400 font-bold px-1.5 py-0.5">
+                                            +{{ food.ingredients|length - 4 }} more
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Rating & Click trigger button -->
+                                <div class="flex items-center justify-between border-t border-gray-100 dark:border-slate-800/60 pt-3 text-xs mt-auto font-bold text-gray-500 dark:text-slate-400">
+                                    <span class="flex items-center text-amber-500">
+                                        ⭐ <span class="ml-1 text-gray-800 dark:text-gray-100">{{ food.rating }}</span>
+                                    </span>
+                                    
+                                    <span class="text-orange-500 dark:text-orange-400 flex items-center group-hover:translate-x-1.5 transition-transform duration-300">
+                                        See Similar Foods <span class="ml-1">➔</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-panel p-12 rounded-3xl text-center text-gray-400">
+                <span class="text-4xl block mb-2">🍽️</span>
+                No dishes found matching the current selections. Try clearing your search, selecting a different category pill, or switching locations in the navigation!
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

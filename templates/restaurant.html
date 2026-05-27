@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-10 mt-6 animate-fade-up">
+    <!-- Back Button -->
+    <div>
+        <a href="{{ url_for('views.dashboard') }}" class="inline-flex items-center text-xs font-bold text-gray-400 hover:text-orange-500 transition-colors">
+            ⬅️ Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Restaurant Hero Banner -->
+    <div class="relative rounded-3xl overflow-hidden shadow-xl border border-white/20 h-72 sm:h-96">
+        <img src="{{ restaurant.image_url }}" alt="{{ restaurant.name }}" class="w-full h-full object-cover">
+        
+        <!-- Dark Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent"></div>
+        
+        <!-- Content Info overlay -->
+        <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-10 text-white flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+            <div class="space-y-3">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold bg-orange-500 text-white px-3 py-1 rounded-full">📍 {{ restaurant.location }}</span>
+                    <span class="text-xs font-bold bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">📞 {{ restaurant.contact or 'N/A' }}</span>
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">{{ restaurant.name }}</h1>
+                <p class="text-xs sm:text-sm text-gray-300 font-medium">{{ restaurant.cuisine }}</p>
+            </div>
+            
+            <div class="flex items-center space-x-6 bg-slate-900/60 backdrop-blur-md rounded-2xl p-4 border border-white/10 self-start sm:self-auto">
+                <div class="text-center">
+                    <span class="block text-amber-400 text-lg font-bold">⭐ {{ restaurant.rating }}</span>
+                    <span class="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Rating</span>
+                </div>
+                <div class="h-8 border-l border-white/10"></div>
+                <div class="text-center">
+                    <span class="block text-white font-bold text-sm">⏱️ {{ restaurant.delivery_time }}m</span>
+                    <span class="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Delivery</span>
+                </div>
+                <div class="h-8 border-l border-white/10"></div>
+                <div class="text-center">
+                    <span class="block text-white font-bold text-sm">₹{{ restaurant.avg_price|int }}</span>
+                    <span class="text-[9px] text-gray-400 uppercase font-bold tracking-wider">For Two</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Favorite Button -->
+        <button data-restaurant-id="{{ restaurant.id }}" class="fav-toggle-btn absolute top-5 right-5 p-3 rounded-full bg-slate-900/60 backdrop-blur-md text-white/80 hover:text-red-500 transition-colors border border-white/10 focus:outline-none {% if is_fav %}text-red-500{% endif %}">
+            <svg class="h-5 w-5" fill="{% if is_fav %}currentColor{% else %}none{% endif %}" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Main Layout: Menu and Reviews Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left 2 Cols: Menu Items -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="border-b border-gray-200/40 dark:border-slate-800 pb-3 flex justify-between items-center">
+                <h3 class="text-xl font-extrabold text-gray-800 dark:text-white">Restaurant Menu</h3>
+                <span class="text-xs text-gray-400 font-semibold">{{ foods|length }} items listed</span>
+            </div>
+            
+            {% if foods %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {% for food in foods %}
+                        <a href="{{ url_for('views.recommendations', food_id=food.id) }}" class="group">
+                            <div class="glass-card rounded-2xl overflow-hidden flex h-36 border border-gray-200/30 dark:border-slate-800/30">
+                                <!-- Info block -->
+                                <div class="p-4 flex flex-col justify-between flex-grow min-w-0">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="text-[8px] font-extrabold uppercase px-2 py-0.5 rounded text-white
+                                                {% if food.category == 'Veg' %}bg-green-600
+                                                {% elif food.category == 'Non-Veg' %}bg-red-600
+                                                {% elif food.category == 'Vegan' %}bg-emerald-600
+                                                {% else %}bg-purple-600{% endif %}">
+                                                {{ food.category }}
+                                            </span>
+                                        </div>
+                                        <h4 class="font-extrabold text-sm text-gray-800 dark:text-white group-hover:text-orange-500 transition-colors truncate">
+                                            {{ food.name }}
+                                        </h4>
+                                        <p class="text-[10px] text-gray-400 line-clamp-2">{{ food.ingredients }}</p>
+                                    </div>
+                                    <span class="text-orange-500 dark:text-orange-400 font-extrabold text-sm">
+                                        ₹{{ food.price|int }}
+                                    </span>
+                                </div>
+                                <!-- Image block -->
+                                <div class="w-32 h-full flex-shrink-0 bg-gray-200 dark:bg-slate-800 overflow-hidden">
+                                    <img src="{{ food.image_url }}" alt="{{ food.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="glass-panel p-8 rounded-2xl text-center text-gray-400">
+                    No menu items listed for this restaurant.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right 1 Col: Reviews & Submission -->
+        <div class="space-y-8">
+            <!-- Review submission form -->
+            <div class="glass-panel rounded-3xl p-6 border border-white/20 space-y-4">
+                <h3 class="text-base font-extrabold text-gray-800 dark:text-white">Leave a Review</h3>
+                
+                <form id="review-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Rating</label>
+                        <select name="rating" id="review-rating" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 focus:outline-none focus:border-orange-500 dark:focus:border-orange-400 text-sm">
+                            <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                            <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                            <option value="3">⭐⭐⭐ (3/5)</option>
+                            <option value="2">⭐⭐ (2/5)</option>
+                            <option value="1">⭐ (1/5)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Comments</label>
+                        <textarea name="comment" id="review-comment" rows="3" placeholder="Share your dining experience..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 focus:outline-none focus:border-orange-500 dark:focus:border-orange-400 text-sm custom-scrollbar resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl hover:opacity-95 shadow-md shadow-orange-500/10 transition-all">
+                        Submit Review
+                    </button>
+                </form>
+            </div>
+
+            <!-- Reviews list -->
+            <div class="space-y-4">
+                <h3 class="text-base font-extrabold text-gray-800 dark:text-white border-b border-gray-200/40 dark:border-slate-800 pb-2">Customer Reviews</h3>
+                
+                <div id="reviews-list" class="space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar pr-1">
+                    {% if reviews %}
+                        {% for r in reviews %}
+                            <div class="glass-panel p-4 rounded-2xl border border-gray-200/20 text-xs space-y-2">
+                                <div class="flex justify-between items-center font-bold">
+                                    <span class="text-gray-800 dark:text-gray-200">{{ r.username }}</span>
+                                    <span class="text-amber-500">⭐ {{ r.rating }}</span>
+                                </div>
+                                <p class="text-gray-500 dark:text-slate-400 leading-relaxed font-light">{{ r.comment or 'No comment left.' }}</p>
+                                <span class="block text-[9px] text-gray-400/80">{{ r.created_at[:10] }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-xs text-gray-400 text-center py-4 italic">No reviews yet. Be the first to add one!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Handle AJAX Review submission
+    document.getElementById('review-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const rating = document.getElementById('review-rating').value;
+        const comment = document.getElementById('review-comment').value.trim();
+        
+        try {
+            const response = await fetch('/api/restaurants/{{ restaurant.id }}/reviews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rating, comment })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Prepend new review card to reviews-list
+                const list = document.getElementById('reviews-list');
+                const noReviewsMsg = list.querySelector('p.italic');
+                if (noReviewsMsg) noReviewsMsg.remove();
+                
+                const card = document.createElement('div');
+                card.className = "glass-panel p-4 rounded-2xl border border-gray-200/20 text-xs space-y-2 animate-fade-up";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center font-bold">
+                        <span class="text-gray-800 dark:text-gray-200">${data.review.username}</span>
+                        <span class="text-amber-500">⭐ ${data.review.rating}</span>
+                    </div>
+                    <p class="text-gray-500 dark:text-slate-400 leading-relaxed font-light">${data.review.comment || 'No comment left.'}</p>
+                    <span class="block text-[9px] text-gray-400/80">${data.review.created_at.substring(0, 10)}</span>
+                `;
+                
+                list.insertBefore(card, list.firstChild);
+                
+                // Clear comment input
+                document.getElementById('review-comment').value = '';
+                showToast('Review submitted successfully!', 'success');
+                
+                // Reload page after a short delay to update average rating dynamically
+                setTimeout(() => window.location.reload(), 1500);
+                
+            } else {
+                const errData = await response.json();
+                showToast(errData.message || 'Failed to submit review.', 'error');
+            }
+        } catch (err) {
+            console.error('Error submitting review:', err);
+            showToast('Connection error. Try again.', 'error');
+        }
+    });
+</script>
+{% endblock %}

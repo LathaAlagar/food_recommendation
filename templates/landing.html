@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center text-center mt-12 sm:mt-20 max-w-4xl mx-auto">
+    <!-- Hero Header -->
+    <div class="space-y-6 animate-fade-up">
+        <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400 border border-orange-200/50 dark:border-orange-900/30">
+            ✨ Next-Gen Food Assistant
+        </span>
+        
+        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-none text-gray-900 dark:text-white">
+            Discover Your Next Culinary Obsession with 
+            <span class="bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 bg-clip-text text-transparent block mt-2">
+                FoodieFinds AI
+            </span>
+        </h1>
+        
+        <p class="text-base sm:text-lg text-gray-500 dark:text-slate-400 max-w-2xl mx-auto font-light leading-relaxed">
+            A state-of-the-art food platform matching content-based Machine Learning similarity scores and real-time AI context to deliver recommendations you'll love.
+        </p>
+    </div>
+
+    <!-- Calls to Action -->
+    <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-6 animate-fade-up" style="animation-delay: 0.1s;">
+        <a href="{{ url_for('auth.signup') }}" class="w-full sm:w-auto px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:scale-105 shadow-xl shadow-orange-500/25 rounded-full transition-all">
+            Get Started Free
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="w-full sm:w-auto px-8 py-4 text-base font-bold text-gray-700 dark:text-gray-200 glass-panel hover:bg-white/50 dark:hover:bg-slate-900/50 rounded-full transition-all">
+            Log In to Account
+        </a>
+    </div>
+
+    <!-- Feature Highlights -->
+    <div class="mt-20 sm:mt-28 grid grid-cols-1 md:grid-cols-3 gap-8 w-full animate-fade-up" style="animation-delay: 0.2s;">
+        <!-- Card 1 -->
+        <div class="glass-card p-6 rounded-3xl text-left border border-white/20">
+            <div class="h-12 w-12 rounded-2xl bg-orange-100 dark:bg-slate-800 flex items-center justify-center text-2xl mb-5 shadow-sm">🤖</div>
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">AI-Powered Chatbot</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">
+                Receive instant recommendations for cheap meals, Chennai hotspots, weather-appropriate dinners, and diet plans. Supports voice commands!
+            </p>
+        </div>
+        
+        <!-- Card 2 -->
+        <div class="glass-card p-6 rounded-3xl text-left border border-white/20">
+            <div class="h-12 w-12 rounded-2xl bg-amber-100 dark:bg-slate-800 flex items-center justify-center text-2xl mb-5 shadow-sm">🧠</div>
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">ML Recommendations</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">
+                Utilizes TF-IDF ingredients analysis and Cosine Similarity models to automatically find foods that match your flavor profile.
+            </p>
+        </div>
+        
+        <!-- Card 3 -->
+        <div class="glass-card p-6 rounded-3xl text-left border border-white/20">
+            <div class="h-12 w-12 rounded-2xl bg-red-100 dark:bg-slate-800 flex items-center justify-center text-2xl mb-5 shadow-sm">📍</div>
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Smart Geolocation</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">
+                Manually choose your local district zone or utilize standard browser geolocation to view nearby restaurants and menus instantly.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
